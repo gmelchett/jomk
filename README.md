@@ -7,7 +7,7 @@ First prototype setup.
 ## TL;DR;
 
 Simple matrix keyboard driver written in python running on raspberry pi pico. Split keyboards supported.
-Currently in beta status.
+Currently in functional alpha status, IE not really been in proper use yet.
 
 
 ## Background
