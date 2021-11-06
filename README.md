@@ -42,6 +42,7 @@ Adafruit's [circuitpython](https://circuitpython.org/) comes with USB HID suppor
  * copy ``keyboard_defines.py``, ``main.py`` and either ``config_left.py`` or ``config_right.py`` to the pico(s)
    Only one config file per pico.
 
+If you create a file named ``debug`` some debug prints will be printed and the LED will be lit when a keypress is detected.
 
 ## TODO
   * Multimedia keys

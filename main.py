@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 import time
+import os
 import board
 import digitalio
 import busio
@@ -11,9 +12,6 @@ import usb_hid
 from adafruit_hid.keyboard import Keyboard
 from adafruit_hid.mouse import Mouse
 from keyboard_defines import kc
-
-led = digitalio.DigitalInOut(board.LED)
-led.direction = digitalio.Direction.OUTPUT
 
 class event:
     NONE = 0
@@ -30,12 +28,18 @@ class state:
 
 class keyboardBase:
 
-    def __init__(self, layers, matrix_row_pins, matrix_col_pins):
+    def __init__(self, layers, matrix_row_pins, matrix_col_pins, debug=False):
         self.matrix_row = []
         self.matrix_col = []
         self.states = {}
         self.layers = layers
         self.curr_layer = 0
+        self.debug = debug
+
+        if self.debug:
+            print("base debug")
+            self.led = digitalio.DigitalInOut(board.LED)
+            self.led.direction = digitalio.Direction.OUTPUT
 
         self.uart = busio.UART(tx=board.GP0, rx=board.GP1, parity=busio.UART.Parity.EVEN, baudrate=115200)
 
@@ -65,8 +69,8 @@ class keyboardBase:
             self.curr_layer += 1
             if self.curr_layer == len(self.layers):
                 self.curr_layer = 0
-
-        print("new layer %d" % self.curr_layer)
+        if self.debug:
+            print("new layer %d" % self.curr_layer)
 
     def scan_matrix(self):
         events = {}
@@ -98,8 +102,8 @@ class keyboardBase:
         return events
 
 class keyboardSlave(keyboardBase):
-    def __init__(self, layers, matrix_row_pins, matrix_col_pins):
-        super().__init__(layers, matrix_row_pins, matrix_col_pins)
+    def __init__(self, layers, matrix_row_pins, matrix_col_pins, debug=False):
+        super().__init__(layers, matrix_row_pins, matrix_col_pins, debug)
 
     def handle_events(self, events):
         writeQueue = {}
@@ -113,7 +117,8 @@ class keyboardSlave(keyboardBase):
             if v not in self.states and events[v].event == event.PRESS:
                 self.handle_layer(v)
 
-                led.value = True
+                if self.debug:
+                    self.led.value = True
                 writeQueue[v] = events[v]
                 self.states[v] = state()
 
@@ -122,7 +127,8 @@ class keyboardSlave(keyboardBase):
                     writeQueue[v] = events[v]
 
             elif events[v].event == event.RELEASE:
-                led.value = False
+                if self.debug:
+                    self.led.value = False
 
                 writeQueue[v] = events[v]
                 self.states.pop(v)
@@ -139,8 +145,8 @@ class keyboardSlave(keyboardBase):
 
 
 class keyboardMaster(keyboardBase):
-    def __init__(self, layers, matrix_row_pins, matrix_col_pins):
-        super().__init__(layers, matrix_row_pins, matrix_col_pins)
+    def __init__(self, layers, matrix_row_pins, matrix_col_pins, debug=False):
+        super().__init__(layers, matrix_row_pins, matrix_col_pins, debug)
 
     def handle_events(self, events):
 
@@ -157,8 +163,9 @@ class keyboardMaster(keyboardBase):
             # none -> none
 
             if v not in self.states and events[v].event == event.PRESS:
-                led.value = True
-                print("Press", v, events[v].foreign)
+                if self.debug:
+                    self.led.value = True
+                    print("Press", v, events[v].foreign)
 
                 self.states[v] = state(foreign=events[v].foreign)
 
@@ -200,7 +207,10 @@ class keyboardMaster(keyboardBase):
                             self.mouse.move(y=5)
 
             elif events[v].event == event.RELEASE:
-                led.value = False
+                if self.debug:
+                    self.led.value = False
+                    print("Release", v, events[v].foreign)
+
                 if v < kc.special_events_start:
                     self.kbd.release(v)
                 elif v >= kc.layer_range_start and v < kc.layer_range_end:
@@ -243,14 +253,23 @@ if __name__ == "__main__":
     usb_powered = digitalio.DigitalInOut(board.GP24)
     usb_powered.direction = digitalio.Direction.INPUT
 
+    dbg = False
+    try:
+        os.stat("debug")
+        print(" * Debug enabled")
+        dbg = True
+    except OSError:
+        pass
+
     time.sleep(1)
 
     if usb_powered.value:
+        # TODO: Fix for bios
         #usb_hid.enable((usb_hid.Device.KEYBOARD, usb_hid.Device.MOUSE, usb_hid.Device.CONSUMER_CONTROL), 2)
         #usb_cdc.enable()
-        kb = keyboardMaster(layers, matrix_row_pins, matrix_col_pins)
+        kb = keyboardMaster(layers, matrix_row_pins, matrix_col_pins, debug=dbg)
     else:
         #usb_cdc.enable()
-        kb = keyboardSlave(layers, matrix_row_pins, matrix_col_pins)
+        kb = keyboardSlave(layers, matrix_row_pins, matrix_col_pins, debug=dbg)
 
     kb.run()
