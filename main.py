@@ -6,12 +6,11 @@ import time
 import board
 import digitalio
 import busio
-
 import usb_hid
+
 from adafruit_hid.keyboard import Keyboard
 from adafruit_hid.mouse import Mouse
 from keyboard_defines import kc
-from config import layers, matrix_row_pins, matrix_col_pins
 
 led = digitalio.DigitalInOut(board.LED)
 led.direction = digitalio.Direction.OUTPUT
@@ -219,6 +218,27 @@ class keyboardMaster(keyboardBase):
             self.handle_events(events)
 
 if __name__ == "__main__":
+    config_loaded = False
+
+    try:
+        from config import layers, matrix_row_pins, matrix_col_pins
+        config_loaded = True
+    except ImportError:
+        pass
+
+    if not config_loaded:
+        try:
+            from config_right import layers, matrix_row_pins, matrix_col_pins
+            config_loaded = True
+        except ImportError:
+            pass
+
+    if not config_loaded:
+        try:
+            from config_left import layers, matrix_row_pins, matrix_col_pins
+        except ImportError:
+            print("ERROR: No configuration file found!")
+            raise ImportError
 
     usb_powered = digitalio.DigitalInOut(board.GP24)
     usb_powered.direction = digitalio.Direction.INPUT

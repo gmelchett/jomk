@@ -36,10 +36,10 @@ Adafruit's [circuitpython](https://circuitpython.org/) comes with USB HID suppor
 
 
 ## Installation
- * Create your own layout by editing ``config-left.py`` (or ``config-right.py``) jomk will first try to load ``config.py``, then ``config-right.py``, and last ``config-left.py``
+ * Create your own layout by editing ``config_left.py`` (or ``config_right.py``) jomk will first try to load ``config.py``, then ``config_right.py``, and last ``config_left.py``
  * Install [circuitpython](https://circuitpython.org/board/raspberry_pi_pico/) on one (or two for split keyboard) raspberry pi pico. I use version 7.0.0
  * Download the [circuitpython libaries](https://circuitpython.org/libraries) and copy the folder ``adafruit_hid`` including all files to ``lib`` on your pico(s).
- * copy ``keyboard_defines.py``, ``main.py`` and either ``config-left.py`` or ``config-right.py`` to the pico(s)
+ * copy ``keyboard_defines.py``, ``main.py`` and either ``config_left.py`` or ``config_right.py`` to the pico(s)
    Only one config file per pico.
 
 
