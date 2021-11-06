@@ -1,5 +1,9 @@
 # jomk - Jonas Matrix Keyboard
 
+![Prototype setup](prototype-setup.jpg)
+
+First prototype setup.
+
 ## TL;DR;
 
 Simple matrix keyboard driver written in python running on raspberry pi pico. Split keyboards supported.
